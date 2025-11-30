@@ -1,5 +1,6 @@
 'use strict';
 const { Model } = require('sequelize');
+const bcrypt = require('bcrypt');
 
 module.exports = (sequelize, DataTypes) => {
   class User extends Model {
@@ -23,7 +24,48 @@ module.exports = (sequelize, DataTypes) => {
         as: 'messages'
       });
     }
+
+    // Custom static methods
+    static async findByEmail(email) {
+      return await this.findOne({ where: { email } });
+    }
+
+    static async findByUsername(username) {
+      return await this.findOne({ where: { username } });
+    }
+
+    static async createUser(userData) {
+      const { username, email, password } = userData;
+      
+      // Hash password before saving
+      const salt = await bcrypt.genSalt(10);
+      const password_hash = await bcrypt.hash(password, salt);
+      
+      return await this.create({
+        username,
+        email,
+        password_hash
+      });
+    }
+
+    // Instance method - compare password
+    async comparePassword(candidatePassword) {
+      return await bcrypt.compare(candidatePassword, this.password_hash);
+    }
+
+    // Instance method - return safe user object (no password)
+    toSafeObject() {
+      return {
+        id: this.id,
+        username: this.username,
+        email: this.email,
+        created_at: this.created_at
+      };
+    }
   }
+  
+
+  
   
   User.init({
     username: {
