@@ -2,19 +2,19 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const db = require('./models');
+const pool = require('./config/database');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(helmet()); 
+// Middleware -- Security and Parsing
+app.use(helmet());
 app.use(cors({
   origin: process.env.ALLOWED_ORIGINS.split(','),
   credentials: true
 }));
-app.use(express.json()); // Parse JSON bodies
-app.use(express.urlencoded({ extended: true })); // Parse URL-encoded bodies
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Test route
 app.get('/', (req, res) => {
@@ -26,33 +26,35 @@ app.get('/', (req, res) => {
 });
 
 // Health check route
-app.get('/health', (req, res) => {
-  res.json({
-    success: true,
-    status: 'healthy',
-    database: 'connected',
-    uptime: process.uptime()
-  });
+app.get('/health', async (req, res) => {
+  try {
+    await pool.query('SELECT 1');
+    res.json({
+      success: true,
+      status: 'healthy',
+      database: 'connected',
+      uptime: process.uptime()
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      status: 'unhealthy',
+      database: 'disconnected',
+      error: error.message
+    });
+  }
 });
 
-// Test database connection and start server
-db.sequelize.authenticate()
-  .then(() => {
-    console.log('✅ Database connected successfully');
-    app.listen(PORT, () => {
-      console.log(`🚀 Server running on http://localhost:${PORT}`);
-      console.log(`📊 Environment: ${process.env.NODE_ENV}`);
-    });
-  })
-  .catch(err => {
-    console.error('❌ Database connection failed:', err);
-    process.exit(1);
-  });
+// Start server
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on http://localhost:${PORT}`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV}`);
+});
 
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('\n⚠️  Shutting down gracefully...');
-  await db.sequelize.close();
-  console.log('✅ Database connection closed');
+  await pool.end();
+  console.log('✅ Database connection pool closed');
   process.exit(0);
 });
