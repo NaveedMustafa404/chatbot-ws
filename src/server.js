@@ -4,7 +4,10 @@ const cors = require('cors');
 const helmet = require('helmet');
 const pool = require('./config/database');
 
-const app = express();
+// We import routes here 
+const authRoutes = require('./routes/authRoutes');
+
+const app = express(); 
 const PORT = process.env.PORT || 5000;
 
 // Middleware -- Security and Parsing
@@ -45,6 +48,17 @@ app.get('/health', async (req, res) => {
   }
 });
 
+// API Routes
+app.use('/api/auth', authRoutes);
+
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Route not found'
+  });
+});
+
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
@@ -58,3 +72,4 @@ process.on('SIGINT', async () => {
   console.log('✅ Database connection pool closed');
   process.exit(0);
 });
+
