@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const roomController = require('../controllers/roomController');
+const messageController = require('../controllers/messageController');
 const { validateCreateRoom, validateUpdateRoom } = require('../validators/roomValidator');
 const { authenticate } = require('../middleware/authMiddleware');
 
@@ -17,5 +18,7 @@ router.post('/:id/leave', roomController.leaveRoom);
 router.put('/:id', validateUpdateRoom, roomController.updateRoom);
 router.delete('/:id', roomController.deleteRoom);
 router.get('/:id/members', roomController.getRoomMembers);
+
+router.get('/:id/messages', messageController.getRoomMessages);
 
 module.exports = router;
