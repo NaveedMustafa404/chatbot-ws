@@ -32,6 +32,15 @@ const findByUsername = async (username) => {
   return await queryOne(sql, [username]);
 };
 
+const findAll = async () => {
+  const sql = `
+    SELECT * FROM users
+    
+  `;
+  
+  return await query(sql);
+};
+
 const findById = async (id) => {
   const sql = `
     SELECT id, username, email, password_hash, created_at, updated_at
@@ -86,6 +95,7 @@ module.exports = {
   findByEmail,
   findByUsername,
   findById,
+  findAll,
   comparePassword,
   getSafeUser,
   updateUser,

@@ -6,6 +6,7 @@ const pool = require('./config/database');
 
 // We import routes here 
 const authRoutes = require('./routes/authRoutes');
+const roomRoutes = require('./routes/roomRoutes');
 
 const app = express(); 
 const PORT = process.env.PORT || 5000;
@@ -50,6 +51,7 @@ app.get('/health', async (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/rooms', roomRoutes);
 
 // 404 handler
 app.use((req, res) => {

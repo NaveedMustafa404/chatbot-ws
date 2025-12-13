@@ -134,8 +134,40 @@ const getProfile = async (req, res) => {
   }
 };
 
+const getAllProfiles = async (req, res) => {
+  try {
+
+    const users = await userRepository.findAll();
+
+    if (!users) {
+      return res.status(404).json({
+        success: false,
+        message: 'Users not found'
+      });
+    }
+
+    const safeUsers = users.map(user => userRepository.getSafeUser(user));
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: safeUsers
+      }
+    });
+    
+  } catch (error) {
+    console.error('Get profile error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get profile',
+      error: error.message
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
-  getProfile
+  getProfile,
+  getAllProfiles
 };
